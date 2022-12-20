@@ -33,6 +33,10 @@
     </div>
 </nav>
 <div class="container">
+    <h1>Facturas</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        nueva
+    </button>
     <table class="table" id="table">
         <thead>
         <tr>
@@ -48,13 +52,51 @@
         </tbody>
     </table>
 
+    <!-- Button trigger modal -->
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+
+                    <div class="form-floating">
+                        <select class="form-select" id="idusuario" aria-label="Floating label select example">
+                            <option selected>selecciona uno</option>
+                        </select>
+                        <label for="idusuario">Usuario</label>
+                    </div>
+                    <div class="form-floating">
+                    <select class="form-select" id="idCliente" aria-label="Floating label select example">
+                        <option selected>selecciona uno</option>
+                    </select>
+                    <label for="idCliente">Cliente</label>
+                </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         var server="http://localhost:8081/";
 
         $(document).ready(
+            function(){
+            getusuario()
             getFacturas()
-
-            );
+            getCLientes()
+            });
 
         function getFacturas(){
             $.ajax({
@@ -89,6 +131,45 @@
                     }
                 },});
         }
+        function getCLientes(){
+        $.ajax({
+                type:"GET",
+                url:server+"cliente/",
+                dataType:"json",
+                success:function (data) {
+                    $.each(data,function (i,item) {
+                    var row="<option value="+item.id+">"+item.nombre+"</option>"
+
+                        $("#idCliente").append(row);
+                    });},});
+
+        }
+        function getusuario(){
+        $.ajax({
+                type:"GET",
+                url:server+"usuario/",
+                dataType:"json",
+                success:function (data) {
+                    $.each(data,function (i,item) {
+                        var row="<option value="+item.id+">"+item.nombre+"</option>"
+                        $("#idusuario").append(row);
+                    });},});
+
+        }
+        function addFactura(){
+
+
+            $.ajax({
+                type:"POST",
+                url:server+"factura/"+id,
+                dataType:"json",
+
+                success:function (data) {
+                    console.log(data);
+
+                },});
+        }
+
 
     </script>
 
