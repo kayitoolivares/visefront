@@ -37,9 +37,11 @@
         <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
+            <th scope="col">estatus</th>
+            <th scope="col">fecha</th>
+            <th scope="col">cliente</th>
+            <th scope="col">usuario</th>
+            <th scope="col">funciones</th>
         </tr>
         </thead>
         <tbody>
@@ -50,27 +52,43 @@
         var server="http://localhost:8081/";
 
         $(document).ready(
-            function (){
-                $.ajax({
-                    type:"GET",
-                    url:server+"factura/",
-                    dataType:"json",
-                    success:function (data) {
-                        $.each(data,function (i,item) {
-                            var row="<tr>"+
-                                "<td>"+item.id+"</td>"+
-                                "<td>"+item.estatus+"</td>"+
-                                "<td>"+item.fecha+"</td>"+
-                                "<td>"+item.cliente+"</td>"+
-                                "<td>"+item.usuario+"</td>"+
-                                "</tr>"
-                            $("#table > tbody").append(row);
-                        });
-                    },
-                });
-            });
+            getFacturas()
 
+            );
 
+        function getFacturas(){
+            $.ajax({
+                type:"GET",
+                url:server+"factura/",
+                dataType:"json",
+                success:function (data) {
+                    $.each(data,function (i,item) {
+                        var row="<tr>"+
+                            "<td>"+item.id+"</td>"+
+                            "<td>"+item.estatus+"</td>"+
+                            "<td>"+item.fecha+"</td>"+
+                            "<td>"+item.cliente+"</td>"+
+                            "<td>"+item.usuario+"</td>"+
+                            "<td><button  class='btn btn-danger' onclick='deleteFactura("+item.id+")'>borrar</button></td>"+
+
+                            "</tr>"
+                        $("#table > tbody").append(row);
+                    });},});
+        }
+        function deleteFactura(id){
+            $.ajax({
+                type:"DELETE",
+                url:server+"factura/"+id,
+                dataType:"json",
+                success:function (data) {
+                    console.log(data);
+                    if (data){
+                        getFacturas()
+                    }else{
+                        window.alert("no se puede eliminar");
+                    }
+                },});
+        }
 
     </script>
 
