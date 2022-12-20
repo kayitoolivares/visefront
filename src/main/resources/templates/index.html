@@ -10,23 +10,17 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Navbar</a>
+        <a class="navbar-brand" href="/">VisePruebaLeo</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    <a class="nav-link active" aria-current="page" href="/">Facturas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Features</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Pricing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled">Disabled</a>
+                    <a class="nav-link" href="/inve">Inventario</a>
                 </li>
             </ul>
         </div>
@@ -48,7 +42,7 @@
             <th scope="col">funciones</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="tbod">
         </tbody>
     </table>
 
@@ -68,20 +62,20 @@
 
                     <div class="form-floating">
                         <select class="form-select" id="idusuario" aria-label="Floating label select example">
-                            <option selected>selecciona uno</option>
+                            <option value="0" selected>selecciona uno</option>
                         </select>
                         <label for="idusuario">Usuario</label>
                     </div>
                     <div class="form-floating">
                     <select class="form-select" id="idCliente" aria-label="Floating label select example">
-                        <option selected>selecciona uno</option>
+                        <option  value="0" selected>selecciona uno</option>
                     </select>
                     <label for="idCliente">Cliente</label>
                 </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">agregar</button>
+                    <button type="button" class="btn btn-primary" onclick="addFactura()">agregar</button>
                 </div>
             </div>
         </div>
@@ -99,6 +93,8 @@
             });
 
         function getFacturas(){
+            $("#tbod").html("");
+
             $.ajax({
                 type:"GET",
                 url:server+"factura/",
@@ -109,12 +105,19 @@
                             "<td>"+item.id+"</td>"+
                             "<td>"+item.estatus+"</td>"+
                             "<td>"+item.fecha+"</td>"+
-                            "<td>"+item.cliente+"</td>"+
-                            "<td>"+item.usuario+"</td>"+
-                            "<td><button  class='btn btn-danger' onclick='deleteFactura("+item.id+")'>borrar</button></td>"+
+                            "<td>"+item.cliente.nombre+"</td>"+
+                            "<td>"+item.usuario.nombre+"</td>"+
+                            "<td>"
+                        if (item.estatus==0){
+                            row=row+"<button  class='btn btn-danger' onclick='deleteFactura("+item.id+")'>borrar</button>"
+                        }
+
+                            row=row+
+                            "<a href='/detalle/"+item.id+"' class='btn btn-primary' onclick='edit("+item.id+")'>Ver</a>" +
+                            "</td>"+
 
                             "</tr>"
-                        $("#table > tbody").append(row);
+                        $("#tbod").append(row);
                     });},});
         }
         function deleteFactura(id){
@@ -157,15 +160,29 @@
 
         }
         function addFactura(){
-
+            var clie = document.getElementById('idCliente').value;
+            var usu = document.getElementById('idusuario').value;
+            if (usu==0){
+                return alert("selecciona usuario")
+            }
+            if (clie==0){
+                return alert("selecciona cliente")
+            }
 
             $.ajax({
                 type:"POST",
-                url:server+"factura/"+id,
+                url:server+"factura/",
                 dataType:"json",
-
+                data:JSON.stringify({
+                    idcliente:clie,
+                    idusuario:usu,
+                    estatus:"0"
+                }),
+                contentType: "application/json",
                 success:function (data) {
                     console.log(data);
+
+                    getFacturas();
 
                 },});
         }

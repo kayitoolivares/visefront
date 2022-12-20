@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>detalle</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/5.1.0/css/bootstrap.min.css">
+    <script type="text/javascript" src="/webjars/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">VisePruebaLeo</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Facturas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/inve">Inventario</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+
+    <h1>Factura</h1>
+    <div class="row" id="detalleFactura">
+
+    </div>
+    <h2>Detalle</h2>
+    <button type="button" id='btndelet1' class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        agregar producto
+    </button>
+    <button class="btn btn-success"  id="btnAfectar" onclick="Afectar()">Afectar</button>
+    <table class="table" id="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">producto</th>
+            <th scope="col">cantidad</th>
+            <th scope="col">preciounitario</th>
+            <th scope="col">total</th>
+        </tr>
+        </thead>
+        <tbody id="tbod">
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+
+                <div class="form-floating">
+                    <select class="form-select" id="idProducto"  aria-label="Floating label select example">
+                        <option value="0" selected>selecciona uno</option>
+                    </select>
+                    <label for="idProducto">prducto</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="number" class="form-control"  id="idcantidad" placeholder="cantidad">
+                    <label for="idcantidad">Cantidad</label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addDetalleFactura()">agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var server="http://localhost:8081/";
+    var paths = window.location.pathname.split('/');
+    var id = paths[paths.length-1];
+    console.log(id);
+
+    $(document).ready(
+        function(){
+            getDetalle()
+            getProducto()
+            getFactura()
+        });
+
+    function getDetalle(){
+        $("#tbod").html("");
+
+        $.ajax({
+            type:"GET",
+            url:server+"facturadetalle/byIDfactura/"+id,
+            dataType:"json",
+            success:function (data) {
+                console.log(data);
+                var total=0;
+                $.each(data,function (i,item) {
+
+                    var row="<tr>"+
+                        "<td>"+item.idproducto+"</td>"+
+                        "<td>"+item.producto.nombre+"</td>"+
+                        "<td>"+item.cantidad+"</td>"+
+                        "<td>"+item.precio+"</td>"+
+                        "<td>"+(item.cantidad*item.precio)+"</td>"+
+                        "<td>";
+                    if (item.factura.estatus==0){
+                        row=row+"<button   class='btn btn-danger' onclick='deleteDetalleFactura("+item.id+")'>borrar</button>"
+                    }
+                    row=row+"</td></tr>";
+
+
+                    $("#tbod").append(row);
+                    total=total+(item.cantidad*item.precio);
+                });
+
+                var row="<tr>"+
+                    "<td  colspan='4'>total</td>"+
+                    "<td>"+total+"</td>"+
+                    "<td></td>"+
+
+                    "</tr>"
+                $("#tbod").append(row);
+
+                },});
+    }
+
+    function getProducto(){
+        $("#idProducto").html("");
+        $.ajax({
+            type:"GET",
+            url:server+"producto/",
+            dataType:"json",
+            success:function (data) {
+
+                $.each(data,function (i,item) {
+                    var row="<option value="+item.id+">"+item.nombre+"... $"+item.precio+"... existencia"+item.cantidad+"</option>"
+
+                    $("#idProducto").append(row);
+                });},});
+
+    }
+    function addDetalleFactura(){
+        var canti = document.getElementById('idcantidad').value;
+        var prdu = document.getElementById('idProducto').value;
+        if (canti==0){
+            return alert("selecciona cantidad ")
+        }
+        if (prdu==0){
+            return alert("selecciona un produc ")
+        }
+
+        $.ajax({
+            type:"POST",
+            url:server+"facturadetalle/",
+            dataType:"json",
+            data:JSON.stringify({
+                idfactura:id,
+                idproducto:prdu,
+                cantidad:canti
+
+            }),
+            contentType: "application/json",
+            success:function (data) {
+                console.log(data);
+                getDetalle()
+                getProducto()
+
+            },});
+    }
+
+
+    function deleteDetalleFactura(idd){
+        $.ajax({
+            type:"DELETE",
+            url:server+"facturadetalle/"+idd,
+            dataType:"json",
+            success:function (data) {
+                console.log(data);
+                if (data){
+                    getDetalle()
+                    getProducto()
+                }else{
+                    window.alert("no se puede eliminar");
+                }
+            },});
+    }
+
+    function getFactura(){
+        $("#detalleFactura").html("");
+
+        $.ajax({
+            type:"GET",
+            url:server+"factura/byID/"+id,
+            dataType:"json",
+            success:function (data) {
+                var row=
+                    "<ul class='list-group list-group-horizontal'><li class='list-group-item'>idFactura</li><li class='list-group-item'>"+data.id+"</li></ul>"+
+                "<ul class='list-group list-group-horizontal'><li class='list-group-item'>estatus</li><li class='list-group-item'>"+data.estatus+"</li></ul>"+
+                "<ul class='list-group list-group-horizontal'><li class='list-group-item'>fecha</li><li class='list-group-item'>"+data.fecha+"</li></ul>"+
+                "<ul class='list-group list-group-horizontal'><li class='list-group-item'>cliente</li><li class='list-group-item'>"+data.cliente.nombre+"</li></ul>"+
+                "<ul class='list-group list-group-horizontal'><li class='list-group-item'>vendedor</li><li class='list-group-item'>"+data.usuario.nombre+"</li></ul>"
+
+
+                $("#detalleFactura").append(row);
+
+                if (data.estatus!=0){
+                    $("#btndelet1").hide();
+                    $("#btnAfectar").hide();
+
+                }
+
+
+                },});
+    }
+    function Afectar(){
+        $.ajax({
+            type:"GET",
+            url:server+"factura/afectar/"+id,
+
+            success:function (data) {
+                console.log(data)
+                window.alert(data)
+                getDetalle()
+                getProducto()
+                getFactura()
+
+            },});
+    }
+
+</script>
+
+
+</body>
+</html>
